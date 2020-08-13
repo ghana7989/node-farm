@@ -14,11 +14,30 @@ const fs = require("fs")
 // })
 
 // ----------------------------------------------------------------------------//
+// Functions 
+const replaceTemplate = (temp, product) => {
+    let output = temp.replace(/{@PRODUCTNAME@}/g, product.productName)
+    output = output.replace(/{@IMAGE@}/g, product.image)
+    output = output.replace(/{@PRICE@}/g, product.price)
+    output = output.replace(/{@DESCRIPTION@}/g, product.description)
+    output = output.replace(/{@QUANTITY@}/g, product.quantity)
+    output = output.replace(/{@NUTRIENTS@}/g, product.nutrients)
+    output = output.replace(/{@ID@}/g, product.id)
+    output = output.replace(/{@FROM@}/g, product.from)
+    !product.organic ?
+        output = output.replace(/{@NOT_ORGANIC@}/g, "not-organic") : output = output.replace(/{@NOT_ORGANIC@}/g, "organic")
+
+    return output;
+
+}
 
 // Server
 const http = require("http")
 const url = require("url")
 
+const templateOverview = fs.readFileSync(`${__dirname}/templates/template-overview.html`, "utf-8")
+const templateProduct = fs.readFileSync(`${__dirname}/templates/template-product.html`, "utf-8")
+const templateCard = fs.readFileSync(`${__dirname}/templates/template-card.html`, "utf-8")
 
 const data = fs.readFileSync(`${__dirname}/dev-data/data.json`, "utf-8")
 const dataObject = JSON.parse(data)
@@ -26,7 +45,12 @@ const dataObject = JSON.parse(data)
 const server = http.createServer((req, res) => {
     const pathname = req.url
     if (pathname === "/overview" || pathname === "/") {
-        res.end("This is an OVERVIEW")
+        res.writeHead(200, {
+            "Content-Type": "text/html"
+        })
+        const cardHTML = dataObject.map(el => replaceTemplate(templateCard, el)).join("")
+        const output = templateOverview.replace("{@PRODUCT_CARD@}",cardHTML)
+        res.end(output)
     } else if (pathname === "/product") {
         res.end("These are the Products");
     } else if (pathname === "/api") {
@@ -39,7 +63,7 @@ const server = http.createServer((req, res) => {
     }
 });
 
-server.listen(8000, "127.0.0.1", () => {
+server.listen(8002, "127.0.0.1", () => {
     console.log("Server is Up");
 })
 
