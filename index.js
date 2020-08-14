@@ -43,16 +43,22 @@ const data = fs.readFileSync(`${__dirname}/dev-data/data.json`, "utf-8")
 const dataObject = JSON.parse(data)
 
 const server = http.createServer((req, res) => {
-    const pathname = req.url
+    // console.log(url.parse(req.url,true))
+    const { query, pathname } = url.parse(req.url, true)
     if (pathname === "/overview" || pathname === "/") {
         res.writeHead(200, {
             "Content-Type": "text/html"
         })
         const cardHTML = dataObject.map(el => replaceTemplate(templateCard, el)).join("")
-        const output = templateOverview.replace("{@PRODUCT_CARD@}",cardHTML)
+        const output = templateOverview.replace("{@PRODUCT_CARD@}", cardHTML)
         res.end(output)
     } else if (pathname === "/product") {
-        res.end("These are the Products");
+        res.writeHead(200,{
+            "Content-Type": "text/html"
+        })
+        const product = dataObject[+query.id]
+        const output = replaceTemplate(templateProduct,product)
+        res.end(output);
     } else if (pathname === "/api") {
         res.writeHead(200, {
             "Content-Type": "application/json"
